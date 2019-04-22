@@ -6,8 +6,9 @@ void initPiezo(){
 
     //Set to FAST PWM 8-bit mode, non inverting
     TCCR3A |= (1 << COM3A1) | (1 << WGM30);
-    TCCR3A &= ~(1 << WGM31);
-    TCCR3B |= (1 << WGM32) | (1 << CS30);
+    TCCR3A |= (1 << WGM31);
+    TCCR3B &= ~(1 << WGM32);
+    TCCR3B |= (1 << CS31) | (1 << CS30);
 
     //Initialize duty cycle to 0%
     OCR3A = 0;

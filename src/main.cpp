@@ -24,6 +24,7 @@ volatile bool on;
 
 int main(void) {
   Serial.begin(9600);
+  Serial.println("Hello.");
   sei();
   initI2C();
   initSwitchPB3();
@@ -48,6 +49,7 @@ int main(void) {
         break;
     }
     if (on){
+      Serial.println("I am on.");
       BAC = getBAC();           //getMQ3 data
       toneOnce();               //beep when data is ready
       displayValue(BAC);        //display data
