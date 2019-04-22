@@ -28,8 +28,10 @@ int main(void) {
   initI2C();
   initSwitchPB3();
   initTimer0();
+  initPiezo();
+  initMQ3();
 
-  on = false;
+  on = false;                   //Start with display off
 
   while (1){
   switch(state){
@@ -44,13 +46,12 @@ int main(void) {
       default:
         break;
     }
-    /*if (on){
-      turnDisplayOn();
-      displayValue(0x06);
+    if (on){
+      //getMQ3 data
+      //beep when data is ready
+      //display data
+      //if data is greater than .08 beep twice
     }
-    else{
-      turnDisplayOff();
-    }*/
   }
 }
 
@@ -58,18 +59,17 @@ int main(void) {
 * pressed and released. When the switch is pressed and released, the motors turn on and off.
 */
 ISR(PCINT0_vect){
-  if(state == wait_press) { //Move to debounce press which will delay and remove err signals
-    on = !on;
+  if(state == wait_press) {   //Move to debounce press which will delay and remove err signals
+    on = !on;                 //If in wait press state, toggle on_off
     if (on){
       turnDisplayOn();
-      displayValue(.08);
     }
     else{
       turnDisplayOff();
     }
     state = debounce_press;
   }
-  if(state == wait_release) { //If in wait release state, toggle on_off
+  if(state == wait_release) { 
     state = debounce_release; //Move to bounce release to transition back to waiting for a button press
   }
 }
