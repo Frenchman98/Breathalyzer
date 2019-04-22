@@ -33,7 +33,7 @@ int main(void) {
   initMQ3();
 
   on = false;                   //Start with display off
-  float BAC;
+  float BAC = 0, oldBAC = 0;
 
   while (1){
   switch(state){
@@ -48,15 +48,19 @@ int main(void) {
       default:
         break;
     }
-    if (on){
+    Serial.println(BAC);
+    BAC = getBAC();
+    if (on && ((BAC - oldBAC) > .001)){
       Serial.println("I am on.");
-      BAC = getBAC();           //getMQ3 data
+      //BAC = getBAC();           //getMQ3 data
       toneOnce();               //beep when data is ready
       displayValue(BAC);        //display data
+      delayMs(2000);
       if (BAC > .08){
         toneTwice();            //if data is greater than .08 beep twice
       } 
     }
+    oldBAC = BAC;
   }
 }
 
@@ -68,6 +72,7 @@ ISR(PCINT0_vect){
     on = !on;                 //If in wait press state, toggle on_off
     if (on){
       turnDisplayOn();
+      displayValue(0);
     }
     else{
       turnDisplayOff();
