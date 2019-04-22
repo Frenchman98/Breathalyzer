@@ -44,12 +44,13 @@ int main(void) {
       default:
         break;
     }
-    if (on){
+    /*if (on){
       turnDisplayOn();
+      displayValue(0x06);
     }
     else{
       turnDisplayOff();
-    }
+    }*/
   }
 }
 
@@ -59,6 +60,13 @@ int main(void) {
 ISR(PCINT0_vect){
   if(state == wait_press) { //Move to debounce press which will delay and remove err signals
     on = !on;
+    if (on){
+      turnDisplayOn();
+      displayValue(.08);
+    }
+    else{
+      turnDisplayOff();
+    }
     state = debounce_press;
   }
   if(state == wait_release) { //If in wait release state, toggle on_off
