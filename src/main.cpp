@@ -32,6 +32,7 @@ int main(void) {
   initMQ3();
 
   on = false;                   //Start with display off
+  float BAC;
 
   while (1){
   switch(state){
@@ -47,10 +48,12 @@ int main(void) {
         break;
     }
     if (on){
-      //getMQ3 data
-      //beep when data is ready
-      //display data
-      //if data is greater than .08 beep twice
+      BAC = getBAC();           //getMQ3 data
+      toneOnce();               //beep when data is ready
+      displayValue(BAC);        //display data
+      if (BAC > .08){
+        toneTwice();            //if data is greater than .08 beep twice
+      } 
     }
   }
 }

@@ -5,4 +5,6 @@
 
 void initMQ3();
 
+float getBAC();
+
 #endif
