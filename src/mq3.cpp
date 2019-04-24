@@ -1,5 +1,7 @@
 #include "mq3.h"
 
+#include "Arduino.h"
+
 void initMQ3(){
   //Set pin into input for DOUT of MQ3 sensor
   //Initialize pull-resistor
@@ -40,15 +42,31 @@ void initMQ3(){
 }
 
 float getBAC(){
-int intVoltage = 0;
+  int intVoltage = 0;
   //Get lower bits first and then upper of the conversion
   intVoltage = ADCL;
   intVoltage |= ADCH << 8;
 
-  //Change to float for setting the PW
+  Serial.println(intVoltage);
+
+  /*
+    BAC Calculation: Typically the MQ3 alcohol sensor outputs an analog value between 0 and 1023 with 1023 being the highest
+    level of alcohol detection. However, the MQ3 sensor is connected to a FC-22 SBX controller which is not designed for the MQ3,
+    but is rather designed for the MQ2 (at least datasheets only exist for a FC-22 and MQ2 combination. FC-22 SBX doesn't appear
+    in any google search). This is causing the sensor to behave inversely of what we expect. Exposed to just air, the sensor outputs
+    a value between 950 and 1000. When exposed directly to 70 proof (35% by volume) vodka, it outputs 20-70. To compensate for this
+    the math to convert the analog reading to BAC is as follows:
+        BAC = MQ3_MAX_LEVEL - inputVoltage;   *This flips the voltage to match the datasheet for the MQ3 sensor
+        BAC = BAC - MQ3_BASE_READING;         *This substracts the level measured when reading air without alcohol.
+        BAC = BAC / MQ3_MAX_LEVEL;            *This step and the next are taken from online to convert between ppm and BAC.
+        BAC = BAC * .21;
+  */
+  intVoltage = MQ3_MAX_LEVEL - intVoltage;
+  intVoltage = intVoltage - MQ3_BASE_READING; 
   float floatVoltage = (float) intVoltage;
-  floatVoltage = floatVoltage / 1023;  //Divide by 1023 since mq3 outputs between 0 and 1023
+  floatVoltage = floatVoltage / 1023;  
   float BAC = floatVoltage * .21;
 
+  Serial.println(BAC);
   return BAC;
 }

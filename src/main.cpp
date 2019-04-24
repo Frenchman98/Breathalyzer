@@ -16,7 +16,7 @@
 
 #include <Arduino.h>
 
-#define DEBOUNCE_DELAY 20
+#define DEBOUNCE_DELAY 50
 
 typedef enum states_t {wait_press, wait_release, debounce_press, debounce_release} states;
 volatile states state = wait_press;
@@ -48,16 +48,18 @@ int main(void) {
       default:
         break;
     }
-    Serial.println(BAC);
+    //Serial.println(BAC);
     BAC = getBAC();
+    delayMs(500);
+    displayValue(BAC);
+    delayMs(3000);
     if (on && ((BAC - oldBAC) > .001)){
-      Serial.println("I am on.");
       //BAC = getBAC();           //getMQ3 data
       toneOnce();               //beep when data is ready
       displayValue(BAC);        //display data
       delayMs(2000);
       if (BAC > .08){
-        toneTwice();            //if data is greater than .08 beep twice
+        toneTwice();            //if gdata is greater than .08 beep twice
       } 
     }
     oldBAC = BAC;
