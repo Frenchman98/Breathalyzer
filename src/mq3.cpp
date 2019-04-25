@@ -1,7 +1,5 @@
 #include "mq3.h"
 
-#include "Arduino.h"
-
 void initMQ3(){
   //Set pin into input for DOUT of MQ3 sensor
   //Initialize pull-resistor
@@ -42,13 +40,6 @@ void initMQ3(){
 }
 
 float getBAC(){
-  int intVoltage = 0;
-  //Get lower bits first and then upper of the conversion
-  intVoltage = ADCL;
-  intVoltage |= ADCH << 8;
-
-  Serial.println(intVoltage);
-
   /*
     BAC Calculation: Typically the MQ3 alcohol sensor outputs an analog value between 0 and 1023 with 1023 being the highest
     level of alcohol detection. However, the MQ3 sensor is connected to a FC-22 SBX controller which is not designed for the MQ3,
@@ -60,13 +51,39 @@ float getBAC(){
         BAC = BAC - MQ3_BASE_READING;         *This substracts the level measured when reading air without alcohol.
         BAC = BAC / MQ3_MAX_LEVEL;            *This step and the next are taken from online to convert between ppm and BAC.
         BAC = BAC * .21;
+      *Using a for loop with delay allows for saturation and average measurement
   */
-  intVoltage = MQ3_MAX_LEVEL - intVoltage;
-  intVoltage = intVoltage - MQ3_BASE_READING; 
-  float floatVoltage = (float) intVoltage;
-  floatVoltage = floatVoltage / 1023;  
-  float BAC = floatVoltage * .21;
+  //Get lower bits first and then upper of the conversion
+  float BAC = 0;
+  for (int i = 0; i < MQ3_NUM_READINGS; i++) {
+    int intVoltage = 0;
+    intVoltage = ADCL;
+    intVoltage |= ADCH << 8;
+    intVoltage = MQ3_MAX_LEVEL - intVoltage;
+    intVoltage = intVoltage - MQ3_BASE_READING; 
+    float floatVoltage = (float) intVoltage;
+    floatVoltage = floatVoltage / 1023;  
+    BAC += (floatVoltage * .21);
+    delayMs(150);
+  }
+  return (BAC/MQ3_NUM_READINGS);
+}
 
-  Serial.println(BAC);
-  return BAC;
+
+bool isBACNew(float oldBAC, float newBAC){
+  if((fabs(oldBAC) < .01) && (fabs(newBAC - oldBAC) > .01)){
+    return true;
+  } else if ((fabs(oldBAC) > .01) && ((newBAC-oldBAC) > .05)){
+    return true;
+  } else {
+    return false;
+  }
+}
+
+bool isAlcDetected(){
+  if (PINA > 0){
+    return true;
+  } else {
+    return false;
+  }
 }

@@ -1,26 +1,28 @@
 #include "piezo.h"
 
-void initPiezo(){
-    //Timer 3, output A
+void toneOnce(int frequency){
+    //Set as output mode
     DDRE |= (1 << DDE3);
 
-    //Set to FAST PWM 8-bit mode, non inverting
-    TCCR3A |= (1 << COM3A1) | (1 << WGM30);
-    TCCR3A |= (1 << WGM31);
-    TCCR3B &= ~(1 << WGM32);
-    TCCR3B |= (1 << CS31) | (1 << CS30);
+    //Set for CTC with prescaler of 256
+    TCCR3A |= (1 << COM3A0);
+    TCCR3A &= ~((1 << COM3A1) | (1 << WGM31) | (1 << WGM30));
 
-    //Initialize duty cycle to 0%
-    OCR3A = 0;
+    TCCR3B |= ((1 << CS32) | (1 << WGM32));
+    TCCR3B &= ~((1 << CS31) | (1 << CS30) | (1 << WGM33));
+
+    //Initialize duty cycle to input frequency (either 440 HZ or 880 HZ)
+    OCR3AL = frequency;
+    
+    //delay for 200 ms for beep duration
+    delayMs(200);
+
+    //Turn off buzzer
+    DDRE &= ~(1 << DDE3);
 }
 
-void toneOnce(){
-    OCR3A = (int) ((.5) * 255 );    //Turn of buzzer 
-    delayMs(500);                   //Wait for half a second
-    OCR3A = 0;                      //Turn of buzzer
-}
-
-void toneTwice(){
-    toneOnce();
-    toneOnce();
+void toneTwice(int frequency){
+    toneOnce(frequency);
+    delayMs(200);
+    toneOnce(frequency);
 }

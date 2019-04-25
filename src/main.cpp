@@ -1,7 +1,7 @@
 // Author: Cordell Freeman, Hernani Fernandes, Philippe Cutillas, Sam Badger        
 // Net ID: cordellfreeman, fernandes, pcutillas , smalbadger      
-// Date: Mar-25-2019         
-// Assignment: Final Project
+// Date: Arpil-29-2019         
+// Assignment: Final Project (Breathalyzer)
 //
 // Description: This file contains a programmatic overall description of the
 // program. It should never contain assignments to special function registers
@@ -24,45 +24,46 @@ volatile bool on;
 
 int main(void) {
   Serial.begin(9600);
-  Serial.println("Hello.");
   sei();
   initI2C();
   initSwitchPB3();
   initTimer0();
-  initPiezo();
   initMQ3();
 
-  on = false;                   //Start with display off
+  on = false;                                 //Start with display off
   float BAC = 0, oldBAC = 0;
 
   while (1){
   switch(state){
-      case(debounce_release):   //If in debounce release, delay to remove erroneous signals
+      case(debounce_release):                 //If in debounce release, delay to remove erroneous signals
         delayMs(DEBOUNCE_DELAY);
         state = wait_press;
         break;
-      case(debounce_press):     //If in debounce press, delay to remove erroneous signals
+      case(debounce_press):                   //If in debounce press, delay to remove erroneous signals
         delayMs(DEBOUNCE_DELAY);
         state = wait_release;
         break;
       default:
         break;
     }
-    //Serial.println(BAC);
-    BAC = getBAC();
-    delayMs(500);
-    displayValue(BAC);
-    delayMs(3000);
-    if (on && ((BAC - oldBAC) > .001)){
-      //BAC = getBAC();           //getMQ3 data
-      toneOnce();               //beep when data is ready
-      displayValue(BAC);        //display data
-      delayMs(2000);
-      if (BAC > .08){
-        toneTwice();            //if gdata is greater than .08 beep twice
-      } 
+    if (on && isAlcDetected()){               //if alcohol is detected and the system is on
+      BAC = getBAC();
+      if (isBACNew(oldBAC,BAC)){
+        toneOnce(PIEZO_440_HZ);               //beep when data is ready
+        delayMs(200);
+        displayValue(BAC);                    //display data
+        delayMs(100);
+        if (BAC > .08){
+          toneTwice(PIEZO_880_HZ);            //if gdata is greater than .08 beep twice
+        } 
+        oldBAC = BAC;
+        delayMs(2000);  
+      } else {                                //else display all 0s
+        delayMs(50);
+        displayValue(0);
+        delayMs(1);
+      }
     }
-    oldBAC = BAC;
   }
 }
 
