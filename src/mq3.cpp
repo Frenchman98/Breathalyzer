@@ -1,4 +1,5 @@
 #include "mq3.h"
+#include "Arduino.h"
 
 void initMQ3(){
   //Set pin into input for DOUT of MQ3 sensor
@@ -81,7 +82,7 @@ bool isBACNew(float oldBAC, float newBAC){
 }
 
 bool isAlcDetected(){
-  if (PINA > 0){
+  if (!(PINA & (1 << PINA1))){
     return true;
   } else {
     return false;

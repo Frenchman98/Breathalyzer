@@ -46,15 +46,15 @@ int main(void) {
       default:
         break;
     }
-    if (on && isAlcDetected()){               //if alcohol is detected and the system is on
+    if (on && isAlcDetected()){               //if alcohol is detected and the system is on, get the BAC
       BAC = getBAC();
       if (isBACNew(oldBAC,BAC)){
         toneOnce(PIEZO_440_HZ);               //beep when data is ready
         delayMs(200);
         displayValue(BAC);                    //display data
         delayMs(100);
-        if (BAC > .08){
-          toneTwice(PIEZO_880_HZ);            //if gdata is greater than .08 beep twice
+        if ((BAC - .08) > .005){
+          toneTwice(PIEZO_440_HZ);            //if gdata is greater than .08 (US legal limit) beep twice
         } 
         oldBAC = BAC;
         delayMs(2000);  
@@ -63,6 +63,8 @@ int main(void) {
         displayValue(0);
         delayMs(1);
       }
+    } else if (on && !(isAlcDetected())){
+      oldBAC = 0;
     }
   }
 }
@@ -71,8 +73,8 @@ int main(void) {
 * pressed and released. When the switch is pressed and released, the motors turn on and off.
 */
 ISR(PCINT0_vect){
-  if(state == wait_press) {   //Move to debounce press which will delay and remove err signals
-    on = !on;                 //If in wait press state, toggle on_off
+  if(state == wait_press) {                   //Move to debounce press which will delay and remove err signals
+    on = !on;                                 //If in wait press state, toggle on_off
     if (on){
       turnDisplayOn();
       displayValue(0);
@@ -83,6 +85,6 @@ ISR(PCINT0_vect){
     state = debounce_press;
   }
   if(state == wait_release) { 
-    state = debounce_release; //Move to bounce release to transition back to waiting for a button press
+    state = debounce_release;                 //Move to bounce release to transition back to waiting for a button press
   }
 }
